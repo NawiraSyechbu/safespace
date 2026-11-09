@@ -1,0 +1,11 @@
+
+venv/
+__pycache__/
+*.pyc
+.env
+data/*.db
+.pytest_cache/
+.ipynb_checkpoints/
+
+# AI Models
+ai/saved_model/
