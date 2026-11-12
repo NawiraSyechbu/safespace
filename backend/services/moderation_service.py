@@ -3,6 +3,7 @@ from backend.database.connection import SessionLocal
 from backend.models.post import Post
 from backend.models.comment import Comment
 from backend.models.moderation_action import ModerationAction
+from backend.models.report import Report
 
 
 def review_content(
@@ -104,6 +105,64 @@ def get_pending_content():
             })
 
         return result
+
+    finally:
+        db.close()
+
+
+def resolve_report(report_id, moderator_id, action, notes=None):
+    """
+    Menindaklanjuti laporan pengguna.
+    action = "dismiss" (laporan diabaikan) atau "block" (konten diblokir).
+    """
+    if action not in ["dismiss", "block"]:
+        return {"success": False, "message": "Aksi laporan tidak valid."}
+
+    db = SessionLocal()
+
+    try:
+        report = db.query(Report).filter(Report.id == report_id).first()
+
+        if not report or report.status != "pending":
+            return {
+                "success": False,
+                "message": "Laporan tidak ditemukan atau sudah diproses."
+            }
+
+        if action == "block":
+            model = Post if report.content_type == "post" else Comment
+
+            content = (
+                db.query(model)
+                .filter(model.id == report.content_id)
+                .first()
+            )
+
+            if content:
+                content.moderation_status = "blocked"
+
+                db.add(
+                    ModerationAction(
+                        moderator_id=moderator_id,
+                        content_type=report.content_type,
+                        content_id=report.content_id,
+                        action="blocked",
+                        notes=notes or "Diblokir berdasarkan laporan pengguna."
+                    )
+                )
+
+            report.status = "resolved"
+
+        else:
+            report.status = "dismissed"
+
+        db.commit()
+
+        return {"success": True, "message": "Laporan berhasil ditindaklanjuti."}
+
+    except Exception:
+        db.rollback()
+        raise
 
     finally:
         db.close()

@@ -9,3 +9,5 @@ data/*.db
 
 # AI Models
 ai/saved_model/
+data/.secret_key
+frontend/dist/

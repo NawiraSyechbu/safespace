@@ -1,4 +1,6 @@
 
+import os
+
 from ai.predictor import predict
 
 
@@ -151,6 +153,12 @@ def analyze_text(text: str) -> dict:
 
     if not isinstance(text, str) or not text.strip():
         raise ValueError("Teks tidak boleh kosong.")
+
+    # Mode uji (AI_MODE=mock di .env): hanya untuk mengetes alur web
+    # tanpa file model. Jangan dipakai untuk demo/produksi.
+    if os.getenv("AI_MODE", "real").lower() == "mock":
+        from ai.mock_engine import mock_analyze
+        return mock_analyze(text)
 
     try:
 

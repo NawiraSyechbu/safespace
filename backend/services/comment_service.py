@@ -77,7 +77,9 @@ def add_comment(user_id, post_id, content, parent_comment_id=None):
                     content_type="comment",
                     content_id=comment.id,
                     task_name=task_name,
-                    predicted_labels=result.get("predicted_labels"),
+                    predicted_labels=result.get("predicted_labels")
+                    if "predicted_labels" in result
+                    else [result.get("predicted_label")],
                     probabilities=result.get("scores"),
                     confidence=str(result.get("confidence"))
                     if result.get("confidence") is not None else None,

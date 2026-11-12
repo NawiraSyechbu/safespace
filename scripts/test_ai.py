@@ -23,6 +23,10 @@ def display_result(result: dict):
 
     for task_name, prediction in result["predictions"].items():
 
+        if prediction is None:
+            print(f"\nMODEL: {task_name} -> tidak dijalankan (HS tidak terdeteksi)")
+            continue
+
         print("\n" + "-" * 45)
         print(f"MODEL: {task_name}")
         print("-" * 45)
