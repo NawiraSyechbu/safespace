@@ -3,6 +3,7 @@ from backend.database.connection import SessionLocal
 from backend.models.appeal import Appeal
 from backend.models.post import Post
 from backend.models.comment import Comment
+from backend.models.moderation_action import ModerationAction
 
 
 def create_appeal(user_id, content_type, content_id, reason):
@@ -111,6 +112,16 @@ def review_appeal(appeal_id, moderator_id, decision):
         if decision == "accepted":
             content.moderation_status = "approved"
 
+        db.add(
+            ModerationAction(
+                moderator_id=moderator_id,
+                content_type=appeal.content_type,
+                content_id=appeal.content_id,
+                action=f"appeal_{decision}",
+                notes="Banding pengguna ditinjau moderator."
+            )
+        )
+
         db.commit()
 
         return {
@@ -121,6 +132,34 @@ def review_appeal(appeal_id, moderator_id, decision):
     except Exception:
         db.rollback()
         raise
+
+    finally:
+        db.close()
+
+
+def get_appeals(status="pending"):
+    db = SessionLocal()
+
+    try:
+        query = db.query(Appeal)
+
+        if status:
+            query = query.filter(Appeal.status == status)
+
+        appeals = query.order_by(Appeal.created_at.asc()).all()
+
+        return [
+            {
+                "id": item.id,
+                "user_id": item.user_id,
+                "content_type": item.content_type,
+                "content_id": item.content_id,
+                "reason": item.reason,
+                "status": item.status,
+                "created_at": item.created_at
+            }
+            for item in appeals
+        ]
 
     finally:
         db.close()

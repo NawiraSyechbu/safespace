@@ -23,11 +23,13 @@ def save_predictions(db, content_type, content_id, predictions):
                 content_type=content_type,
                 content_id=content_id,
                 task_name=task_name,
-                predicted_labels=result.get("predicted_labels"),
+                predicted_labels=result.get("predicted_labels")
+                    if "predicted_labels" in result
+                    else [result.get("predicted_label")],
                 probabilities=result.get("scores"),
                 confidence=str(result.get("confidence"))
                 if result.get("confidence") is not None else None,
-                model_version="indobert-iterasi4"
+                model_version="indobert-iterasi5"
             )
         )
 
